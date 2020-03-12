@@ -5,20 +5,23 @@
 #define SIZE 20
 
 struct Transformation {
-    char input[10][10];
-    char output[10][10];
+    char input;
+    char output[10];
+
 };
 
-int main(void)
-{
+struct Transformation automata[10][10];
+char target[10][10][10];
+
+//matriz de nodos para almacenar su nombra y si son iniciales o finales
+char nodos[SIZE][10];
+
+int main(void){
 //Variables
-    FILE *automata;
+    FILE *ficheroAutomata;
 
     //caracter leido
     char c;
-
-    //matriz de nodos
-    char nodos[10][10];
 
     //Indicador de NuevoNodo
     int nuevoNodo = 1;
@@ -43,60 +46,35 @@ int main(void)
 
     int destino = 0;
 
-    //Matriz del automata traductor
-    int matrizAutomata[SIZE][SIZE];
-
-    struct Transformation t[10];
-
-    int i = 0;
-    int j = 0;
-    int k = 0;
+    int i=0;
+    int j=0;
+    int k=0;
 
 //Inicializacion matrices
-    while(i<10) {
-        while(j<10) {
-            nodos[i][j] = '0';
-            j++;
+    for(i=0; i<SIZE; i++) {
+        for(j=0; j<SIZE; j++) {
+            nodos[i][j] = '#';
         }
-        i++;
-        j = 0;
     }
 
-    i=0;
-    j=0;
-    while(i<SIZE) {
-        while(j<SIZE) {
-            matrizAutomata[i][j] = 0;
-            j++;
-        }
-        i++;
-        j = 0;
-    }
-    i = 0;
-    j = 0;
-    k = 0;
-
-    while(i<10){
-        while(j<10){
-            while(k<10){
-                t[i].input[j][k] = '0';
-                t[i].output[j][k] = '0';
-                k++;
+    for(i=0; i<SIZE; i++) {
+        for(j=0; j<SIZE; j++) {
+            automata[i][j].input = '#';
+            for(k=0; k<10; k++) {
+                automata[i][j].output[k] = '#';
+                target[i][j][k] = '#';
             }
-            j++;
-            k = 0;
         }
-        i++;
-        j = 0;
     }
-//Abrir fichero para lectura
-    automata = fopen("automata.txt", "r");
 
-    if (automata == NULL) {
+//Abrir fichero para lectura
+    ficheroAutomata = fopen("automata.txt", "r");
+
+    if (ficheroAutomata == NULL) {
             printf("File not Found");
     }
 
-    while ((c = fgetc(automata)) != EOF) {
+    while ((c = fgetc(ficheroAutomata)) != EOF) {
 //Preparacion para leer nuevo nodo
         if(nuevoNodo == 0){
             if(c == ';') {
@@ -104,13 +82,13 @@ int main(void)
                 indiceNombreNodo = 0;
                 indiceNodo++;
                 leerNodo = 0;
+                indiceTransformacion = 0;
             }
             else if (c == '\n'){
                 destino = 0;
             }
             else if(c != '\n' && terminarNuevoNodo == 1) {
                 nuevoNodo = 1;
-                printf("nuevo nodo");
             }
 
         }
@@ -118,7 +96,9 @@ int main(void)
 //Encontrar nodos del automata
         if(nuevoNodo == 1) {
             if(c == 'O') {
-                nodos[indiceNodo][NODOFINAL] = '1';                          //Nodo final
+                nodos[indiceNodo][NODOFINAL] = '1';                          //Nodo
+                if(nodos[indiceNodo][NODOINICIAL]!= '1')
+                    nodos[indiceNodo][NODOINICIAL] = '0';
             }
             else if(c == '>') {
                 nodos[indiceNodo][NODOINICIAL] = '1';                        //Nodo inicial
@@ -128,7 +108,6 @@ int main(void)
                 indiceNombreNodo++;
             }
             else {
-                printf("leyendo nodo");
                 nodos[indiceNodo][indiceNombreNodo] = ' ';                   //Final nombre del nodo
                 nuevoNodo = 0;
                 terminarNuevoNodo = 0;
@@ -136,6 +115,7 @@ int main(void)
                 indiceNombreNodo = 0;
             }
         }
+
 //lectura nodo
         if(leerNodo == 1){
             if(c == '/'){
@@ -145,22 +125,22 @@ int main(void)
             else if(c == '>'){
                 input = 1;
                 destino = 1;
+                indiceNombreNodo = 0;
             }
             else if(destino == 1){
-                    //tratamiento de destino
+                target[indiceNodo][indiceTransformacion][indiceNombreNodo] = c;
+                indiceNombreNodo++;
             }
             else if(c != '\n'){
                 if(input == 1){
-                    printf("\ninsertando %c en input\n", c);
-                    t[indiceNodo].input[indiceTransformacion][indiceNombreNodo] = c;
+                    automata[indiceNodo][indiceTransformacion].input = c;
                 }
                 else {
-                    printf("\ninsertando %c en output\n", c);
-                    t[indiceNodo].output[indiceTransformacion][indiceNombreNodo] = c;
+                    automata[indiceNodo][indiceTransformacion].output[indiceNombreNodo] = c;
                 }
                 indiceNombreNodo++;
             }
-            else {
+            else if (automata[indiceNodo][0].input != '#'){
                 indiceTransformacion++;
             }
 
@@ -176,25 +156,16 @@ int main(void)
     j=0;
     while(i<10) {
         while(j<10) {
-            printf("%c",nodos[i][j]);
+            if(nodos[i][j] != '#')
+                printf("%c",nodos[i][j]);
             j++;
         }
-        printf("\n");
+        if(nodos[i][j-1] != '#')
+            printf("\n");
         i++;
         j=0;
     }
     printf("\n\n");
-    i=0;
-    j=0;
-    while(i<SIZE) {
-        while(j<SIZE) {
-            printf("%i", matrizAutomata[i][j]);
-            j++;
-        }
-        printf("\n");
-        i++;
-        j = 0;
-    }
     printf("transformaciones\n");
     i=0;
     j=0;
@@ -202,17 +173,25 @@ int main(void)
     while(i<10){
         printf("nodo %i\n", i);
         while(j<10){
+            if(automata[i][j].input != '#'){
+                printf("%c ", automata[i][j].input);
+                printf("/");
+            }
             while(k<10){
-                printf("%c ", t[i].input[j][k]);
+                if(automata[i][j].output[k] != '#')
+                    printf(" %c", automata[i][j].output[k]);
                 k++;
             }
-            k = 0;
-            printf("/");
+            k=0;
+            if(automata[i][j].output[k] != '#')
+                printf("; destino: ");
             while(k<10){
-                printf(" %c"), t[i].output[j][k];
+                if(target[i][j][k] != '#')
+                    printf("%c ", target[i][j][k]);
                 k++;
             }
-            printf("\n");
+            if(automata[i][j].output[k] != '#')
+                printf("\n");
             j++;
             k = 0;
         }
@@ -221,8 +200,48 @@ int main(void)
         j = 0;
     }
 
-    printf("\nI miss Python already");
 //Cierre de fichero
-    fclose(automata);
+    fclose(ficheroAutomata);
+
+    //El tamanio máximo de la palabra a traducir es de 30 caracteres
+    //char palabra[30];
+    //printf("Introduce la palabra a traducir:");
+    //scanf("%s", palabra);
+
+ //   traducir(palabra);
     return 0;
 }
+
+
+void traducir( char palabra[]) {
+    int index = 0;
+    char c;
+    int estadoActual = 0;
+    int abortado = 0;
+
+    while(palabra[index] != '\0' && abortado == 0) {
+        c = palabra[index];
+
+        int encontrada = 0;
+
+        for(int i=0; i<SIZE || encontrada == 0; i++){
+
+            if(automata[estadoActual][i].input == c) {
+                encontrada = 1;
+                printf("%s", automata[estadoActual][i].output);
+
+                estadoActual = i;
+                index++;
+
+                if(nodos[estadoActual][NODOFINAL] == '1' && c == '\0')
+                    printf("\nTraduccion finalizada.");
+            }
+
+            else if (i==SIZE-1) {
+                printf("Proceso abortado");
+                abortado = 1;
+            }
+        }
+    }
+}
+
