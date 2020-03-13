@@ -72,7 +72,7 @@ int main(void){
     }
 
 //Abrir fichero para lectura
-    ficheroAutomata = fopen("automata.txt", "r");
+    ficheroAutomata = fopen("automata_2.txt", "r");
 
     if (ficheroAutomata == NULL) {
             printf("File not Found");
@@ -219,6 +219,10 @@ void traducir(char palabra[]) {
 
                 if(nodos[estadoActual][NODOFINAL] == '1' && palabra[index] == '\0')
                     printf("\nTraduccion finalizada.");
+                else {
+                    printf("\nLa palabra introducida no pertenece al alfabeto, proceso abortado");
+                    abortado = 1;
+                }
             }
         }
 
