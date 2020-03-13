@@ -10,9 +10,9 @@ struct Transformation {
 
 };
 
-struct Transformation automata[10][10];
+struct Transformation automata[SIZE][SIZE];
 
-char target[10][10][8];
+char target[SIZE][SIZE][8];
 
 //matriz de nodos para almacenar su nombra y si son iniciales o finales
 char nodos[SIZE][10];
@@ -72,7 +72,7 @@ int main(void){
     }
 
 //Abrir fichero para lectura
-    ficheroAutomata = fopen("automata_2.txt", "r");
+    ficheroAutomata = fopen("automata.txt", "r");
 
     if (ficheroAutomata == NULL) {
             printf("File not Found");
@@ -106,6 +106,7 @@ int main(void){
             }
             else if(c == '>') {
                 nodos[indiceNodo][NODOINICIAL] = '1';                        //Nodo inicial
+                nodos[indiceNodo][NODOFINAL] = '0';
             }
             else if(c != '\n') {
                 nodos[indiceNodo][indiceNombreNodo] = c;                     //Nombre del nodo
@@ -152,7 +153,6 @@ int main(void){
         }
 //Debug
         printf("%c", c);
-
     }
 
 //Cierre de fichero
@@ -192,17 +192,17 @@ int buscarTarget(char palabra[]){
 
 void traducir(char palabra[]) {
     int index = 0;
-    char c;
+    char c = palabra[0];
     int estadoActual = 0;
     int abortado = 0;
     printf("Traduccion: ");
 
     while(palabra[index] != '\0' && abortado == 0) {
         c = palabra[index];
+
         int encontrada = 0;
 
         for(int i=0; i<SIZE && encontrada == 0; i++){
-
             if(automata[estadoActual][i].input == c) {
                 encontrada = 1;
                 for(int j = 0; j<10 && automata[estadoActual][i].output[j] != '#'; j++)
@@ -216,18 +216,18 @@ void traducir(char palabra[]) {
                     abortado = 1;
                 }
                 index++;
-
-                if(nodos[estadoActual][NODOFINAL] == '1' && palabra[index] == '\0')
+                if(nodos[estadoActual][NODOFINAL] == '1' && palabra[index] == '\0'){
                     printf("\nTraduccion finalizada.");
-                else {
-                    printf("\nLa palabra introducida no pertenece al alfabeto, proceso abortado");
+                }
+                else if(nodos[estadoActual][NODOFINAL] != '1' && palabra[index] == '\0'){
+                    printf("\nProceso abortado, la palabra introducida no pertenece al lenguaje");
                     abortado = 1;
                 }
+
             }
         }
-
         if (encontrada == 0) {
-                printf("\nProceso abortado");
+                printf("\nProceso abortado, la palabra introducida no pertenece al lenguaje.");
                 abortado = 1;
         }
 
