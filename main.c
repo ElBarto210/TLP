@@ -11,10 +11,13 @@ struct Transformation {
 };
 
 struct Transformation automata[10][10];
+
 char target[10][10][10];
 
 //matriz de nodos para almacenar su nombra y si son iniciales o finales
 char nodos[SIZE][10];
+
+int indexTraduccion = -1;
 
 int main(void){
 //Variables
@@ -154,7 +157,7 @@ int main(void){
     printf("\n\nNODOS: \n");
     i=0;
     j=0;
-    while(i<10) {
+    while(i<SIZE) {
         while(j<10) {
             if(nodos[i][j] != '#')
                 printf("%c",nodos[i][j]);
@@ -204,16 +207,37 @@ int main(void){
     fclose(ficheroAutomata);
 
     //El tamanio máximo de la palabra a traducir es de 30 caracteres
-    //char palabra[30];
-    //printf("Introduce la palabra a traducir:");
-    //scanf("%s", palabra);
-
- //   traducir(palabra);
+    char palabra[30];
+    printf("Introduce la palabra a traducir:");
+    scanf("%s", palabra);
+    traducir(palabra);
     return 0;
 }
 
+int buscarTarget(char palabra[]){
+    int i = 0;
+    int j = 0;
+    int encontrado = 0;
+    while(i<SIZE || encontrado == 1){
+        encontrado = 1;
+        while(j<8){
+            if(nodos[i][j]!='#'){
+                if(nodos[i][j] != palabra[j]){
+                    encontrado = 0;
+                }
+            }
+            j++;
+        }
+        j=0;
+        if(encontrado == 1){
+            indexTraduccion = i;
+        }
+        i++;
+    }
+    return indexTraduccion;
+}
 
-void traducir( char palabra[]) {
+void traducir(char palabra[]) {
     int index = 0;
     char c;
     int estadoActual = 0;
@@ -228,9 +252,15 @@ void traducir( char palabra[]) {
 
             if(automata[estadoActual][i].input == c) {
                 encontrada = 1;
-                printf("%s", automata[estadoActual][i].output);
-
-                estadoActual = i;
+                for(int j = 0; j<10; j++){
+                    if(automata[estadoActual][i].output[j] != '#')
+                        printf("%c", automata[estadoActual][i].output[j]);
+                }
+                estadoActual = buscarTarget(target[estadoActual][i]);
+                if (estadoActual == -1){
+                    printf("No pertenece la palabra al alfabeto");
+                    break;
+                }
                 index++;
 
                 if(nodos[estadoActual][NODOFINAL] == '1' && c == '\0')
@@ -238,7 +268,7 @@ void traducir( char palabra[]) {
             }
 
             else if (i==SIZE-1) {
-                printf("Proceso abortado");
+                printf("\nProceso abortado");
                 abortado = 1;
             }
         }
